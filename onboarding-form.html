@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start Your Project</title>
+<style>
+  :root {
+    --bg: #f4f2ee;
+    --card: #ffffff;
+    --ink: #1d1f22;
+    --muted: #64686f;
+    --line: #dcd8d0;
+    --accent: #1f6f5c;
+    --accent-ink: #ffffff;
+    --accent-soft: #e3f0ec;
+    --error: #b3261e;
+    --error-soft: #fbeceb;
+    --focus: #1f6f5c55;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141618;
+      --card: #1d2023;
+      --ink: #eceae6;
+      --muted: #9a9ea5;
+      --line: #33373c;
+      --accent: #5fbfa5;
+      --accent-ink: #0f1a17;
+      --accent-soft: #1f2f2a;
+      --error: #f2867e;
+      --error-soft: #3a2220;
+      --focus: #5fbfa555;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141618; --card: #1d2023; --ink: #eceae6; --muted: #9a9ea5; --line: #33373c;
+    --accent: #5fbfa5; --accent-ink: #0f1a17; --accent-soft: #1f2f2a;
+    --error: #f2867e; --error-soft: #3a2220; --focus: #5fbfa555;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 48px 16px 64px; }
+
+  header { margin-bottom: 28px; }
+  .eyebrow {
+    font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 8px;
+  }
+  h1 { font-size: clamp(28px, 5vw, 36px); line-height: 1.15; margin: 0 0 12px; }
+  header p { color: var(--muted); margin: 0; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  @media (max-width: 520px) { .card { padding: 20px; } }
+
+  fieldset { border: 0; margin: 0 0 28px; padding: 0; }
+  fieldset:last-of-type { margin-bottom: 20px; }
+  legend {
+    font-size: 15px; font-weight: 650; padding: 0; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  legend .num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-grid; place-items: center; font-size: 13px;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid .full { grid-column: 1 / -1; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  label { font-size: 14px; font-weight: 550; }
+  label .req { color: var(--error); margin-left: 2px; }
+  label .opt { color: var(--muted); font-weight: 400; }
+  .hint { font-size: 13px; color: var(--muted); }
+
+  input, textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { resize: vertical; min-height: 110px; }
+  input:focus, textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus);
+  }
+  .money { position: relative; }
+  .money span {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); pointer-events: none;
+  }
+  .money input { padding-left: 26px; }
+
+  .field.invalid input, .field.invalid textarea { border-color: var(--error); }
+  .error { font-size: 13px; color: var(--error); min-height: 0; }
+  .error:empty { display: none; }
+
+  .deposit {
+    margin-top: 4px; font-size: 13px; color: var(--muted);
+  }
+  .deposit strong { color: var(--ink); font-weight: 600; }
+
+  .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+  .consent input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+
+  .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  button {
+    font: inherit; font-weight: 600;
+    background: var(--accent); color: var(--accent-ink);
+    border: 0; border-radius: 8px; padding: 12px 22px; cursor: pointer;
+  }
+  button:hover { filter: brightness(1.06); }
+  button:disabled { opacity: .6; cursor: progress; }
+  .actions small { color: var(--muted); }
+
+  .banner {
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 20px; font-size: 14px;
+    background: var(--error-soft); color: var(--error);
+  }
+  .banner[hidden] { display: none; }
+
+  .done { text-align: center; padding: 24px 8px; }
+  .done .tick {
+    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+    background: var(--accent-soft); color: var(--accent);
+    display: grid; place-items: center;
+  }
+  .done h2 { margin: 0 0 8px; font-size: 22px; }
+  .done p { color: var(--muted); margin: 0 auto; max-width: 440px; }
+  .steps { text-align: left; max-width: 420px; margin: 24px auto 0; padding: 0; list-style: none; }
+  .steps li { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .steps li b { color: var(--accent); min-width: 18px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Client onboarding</p>
+    <h1>Start your project with us</h1>
+    <p>Tell us what you need and when you need it. Please choose a due date at least 2 weeks from today and within the next year. We will get back to you shortly.</p>
+  </header>
+
+  <div class="card" id="card">
+    <form id="onboarding-form" novalidate>
+      <div class="banner" id="banner" role="alert" hidden></div>
+
+      <fieldset>
+        <legend><span class="num">1</span>About you</legend>
+        <div class="grid">
+          <div class="field full">
+            <label for="company">Company name<span class="req">*</span></label>
+            <input id="company" name="Company Name" autocomplete="organization" required minlength="2" maxlength="200">
+            <div class="error"></div>
+          </div>
+          <div class="field">
+            <label for="name">Your name<span class="req">*</span></label>
+            <input id="name" name="Your Name" autocomplete="name" required maxlength="120">
+            <div class="error"></div>
+          </div>
+          <div class="field">
+            <label for="email">Email<span class="req">*</span></label>
+            <input id="email" name="Email" type="email" autocomplete="email" required maxlength="200">
+            <div class="error"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="num">2</span>The project</legend>
+        <div class="grid">
+          <div class="field full">
+            <label for="scope">What do you need done?<span class="req">*</span></label>
+            <textarea id="scope" name="What do you need done?" required minlength="10" maxlength="4000"
+              placeholder="One item per line, e.g.&#10;Landing page with online order form&#10;Email sign-up form&#10;Basic analytics"></textarea>
+            <span class="hint">List each deliverable on its own line.</span>
+            <div class="error"></div>
+          </div>
+          <div class="field">
+            <label for="budget">Budget (USD)<span class="req">*</span></label>
+            <div class="money">
+              <span>$</span>
+              <input id="budget" name="Budget" type="number" inputmode="decimal" min="1" step="1" required placeholder="Your budget for this project">
+            </div>
+            <div class="deposit" id="deposit" aria-live="polite"></div>
+            <div class="error"></div>
+          </div>
+          <div class="field">
+            <label for="due">Due date<span class="req">*</span></label>
+            <input id="due" name="Due Date" type="date" required>
+            <span class="hint" id="due-hint"></span>
+            <div class="error"></div>
+          </div>
+          <div class="field full">
+            <label for="notes">Anything else we should know? <span class="opt">(optional)</span></label>
+            <textarea id="notes" name="Anything else we should know?" maxlength="2000"
+              placeholder="Preferred tone, team size, deadlines, anything that helps."></textarea>
+            <div class="error"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <div class="field">
+          <label class="consent">
+            <input type="checkbox" id="consent" required>
+            <span>I understand a 50% deposit is due before work starts, and I agree to be contacted about this request.</span>
+          </label>
+          <div class="error"></div>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" id="submit">Send request</button>
+        <small>Fields marked <span style="color:var(--error)">*</span> are required.</small>
+      </div>
+    </form>
+  </div>
+
+  <footer>Your details are only used to prepare your proposal.</footer>
+</main>
+
+<script>
+  // "Website Form Submission" webhook in the Client Onboarding (Ahmed) n8n workflow (POST, JSON).
+  // Only live while the workflow is published. For an unpublished test run, use .../webhook-test/client-onboarding.
+  // Leave empty to run in demo mode: the payload is logged to the console instead.
+  const WEBHOOK_URL = 'https://hashir2.app.n8n.cloud/webhook/client-onboarding';
+
+  // Must match the "Check Due Date" node in client-onboarding-ahmed.json.
+  const MIN_DAYS = 14;
+  const MAX_DAYS = 365;
+  const DEPOSIT_PERCENT = 50;
+
+  const form = document.getElementById('onboarding-form');
+  const banner = document.getElementById('banner');
+  const submitBtn = document.getElementById('submit');
+  const due = document.getElementById('due');
+  const budget = document.getElementById('budget');
+
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const addDays = (n) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n); return d; };
+  const pretty = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const money = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+
+  const earliest = addDays(MIN_DAYS);
+  const latest = addDays(MAX_DAYS);
+  due.min = iso(earliest);
+  due.max = iso(latest);
+  document.getElementById('due-hint').textContent = `Between ${pretty(earliest)} and ${pretty(latest)}.`;
+
+  budget.addEventListener('input', () => {
+    const v = Number(budget.value);
+    document.getElementById('deposit').innerHTML = v > 0
+      ? `Deposit (${DEPOSIT_PERCENT}%): <strong>${money(Math.round(v * DEPOSIT_PERCENT) / 100)}</strong>`
+      : '';
+  });
+
+  function checkField(el) {
+    const v = el.type === 'checkbox' ? el.checked : el.value.trim();
+    let msg = '';
+    if (el.required && !v) {
+      msg = el.type === 'checkbox' ? 'Please tick this box to continue.' : 'This field is required.';
+    } else if (el.type === 'email' && v && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) {
+      msg = 'Please enter a valid email address.';
+    } else if (el.minLength > 0 && v && v.length < el.minLength) {
+      msg = `Please enter at least ${el.minLength} characters.`;
+    } else if (el === budget && v && !(Number(v) > 0)) {
+      msg = 'Budget must be greater than 0.';
+    } else if (el === due && v) {
+      const d = new Date(v + 'T00:00:00');
+      if (isNaN(d)) msg = 'We could not read that date.';
+      else if (d < addDays(0)) msg = 'That date is in the past.';
+      else if (d < earliest) msg = `We need at least ${MIN_DAYS} days to do the work properly.`;
+      else if (d > latest) msg = 'That date is more than a year away.';
+    }
+    const wrap = el.closest('.field');
+    wrap.classList.toggle('invalid', !!msg);
+    const slot = wrap.querySelector('.error');
+    if (slot) slot.textContent = msg;
+    el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    return !msg;
+  }
+
+  const inputs = [...form.querySelectorAll('input, textarea')];
+  inputs.forEach((el) => {
+    el.addEventListener('blur', () => checkField(el));
+    el.addEventListener('input', () => {
+      if (el.closest('.field').classList.contains('invalid')) checkField(el);
+    });
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    banner.hidden = true;
+    const bad = inputs.filter((el) => !checkField(el));
+    if (bad.length) { bad[0].focus(); return; }
+
+    // Keys match the n8n form field labels, so downstream nodes ($json["Company Name"], ...) keep working.
+    const payload = {};
+    inputs.forEach((el) => { if (el.name) payload[el.name] = el.value.trim(); });
+    payload['Budget'] = Number(payload['Budget']);
+    payload['Submitted At'] = new Date().toISOString();
+    payload['Source'] = 'web-form';
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    try {
+      if (WEBHOOK_URL) {
+        const res = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      } else {
+        console.info('[demo mode] Onboarding payload:', payload);
+      }
+      showDone(payload);
+    } catch (err) {
+      console.error(err);
+      banner.textContent = 'Sorry, we could not send your request. Please check your connection and try again.';
+      banner.hidden = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send request';
+    }
+  });
+
+  function showDone(p) {
+    const first = p['Your Name'].split(' ')[0];
+    const card = document.getElementById('card');
+    card.innerHTML = `
+      <div class="done" role="status">
+        <div class="tick">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <h2>Thank you, ${escapeHtml(first)}!</h2>
+        <p>We have your request and will be in touch soon at <strong>${escapeHtml(p['Email'])}</strong>.</p>
+        <ol class="steps">
+          <li><b>1</b>We review your request and send a meeting invite.</li>
+          <li><b>2</b>You receive the agreement and a ${DEPOSIT_PERCENT}% deposit invoice.</li>
+          <li><b>3</b>Once signed and paid, we kick off the project.</li>
+        </ol>
+      </div>`;
+    card.focus?.();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+</script>
+</body>
+</html>

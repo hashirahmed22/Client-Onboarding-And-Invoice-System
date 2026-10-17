@@ -1,0 +1,1835 @@
+{
+  "name": "Client Onboarding and Invoice System",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Start your project with us",
+        "formDescription": "Tell us what you need and when you need it. Please choose a due date at least 2 weeks from today and within the next year. We will get back to you shortly.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Company Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What do you need done?",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Budget",
+              "fieldType": "number",
+              "placeholder": "Your budget for this project",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Due Date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Anything else we should know?",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Send request",
+          "path": "client-onboarding",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Thank you! We have your request and will be in touch soon."
+            }
+          }
+        }
+      },
+      "id": "0b4a5c9b-cbe6-41bc-a653-395df4904fa8",
+      "name": "Client Onboarding Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        -16
+      ],
+      "webhookId": "f6791227-30e6-4667-9acb-c6cfa0f5ef86"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10yct2cMGpDgL2dGb5zkqHIFghlpHuKNSaG6bQsvheVU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Clients"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Deal ID": "=ONB-{{ $now.toMillis() }}",
+            "Legal Name": "={{ $json[\"Company Name\"] }}",
+            "Contact Name": "={{ $json[\"Your Name\"] }}",
+            "Contact Email": "={{ $json[\"Email\"] }}",
+            "Scope Items": "={{ $json[\"What do you need done?\"] }}",
+            "Budget": "={{ $json[\"Budget\"] }}",
+            "Due Date": "={{ $json[\"Due Date\"] }}",
+            "Notes": "={{ $json[\"Anything else we should know?\"] ?? \"\" }}",
+            "Status": "Lead",
+            "Paid": "FALSE"
+          },
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "0b804cf1-3c88-4d76-a487-14e219785926",
+      "name": "Save Request to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        80
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FjX3nVqL7WD9w0Md",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "ahmedhashir0022@gmail.com",
+        "subject": "=New client request: {{ $(\"Client Onboarding Form\").first().json[\"Company Name\"] }}",
+        "message": "=<p>A new request came in through the form and was saved to your sheet as a <b>Lead</b>.</p><p><b>Company:</b> {{ $(\"Client Onboarding Form\").first().json[\"Company Name\"] }}<br><b>Contact:</b> {{ $(\"Client Onboarding Form\").first().json[\"Your Name\"] }} &lt;{{ $(\"Client Onboarding Form\").first().json[\"Email\"] }}&gt;<br><b>Needs:</b> {{ $(\"Client Onboarding Form\").first().json[\"What do you need done?\"] }}<br><b>Budget:</b> {{ $(\"Client Onboarding Form\").first().json[\"Budget\"] }}<br><b>Due date:</b> {{ $(\"Client Onboarding Form\").first().json[\"Due Date\"] }}</p><p>When the deal is agreed, fill in the Deposit Amount in the sheet (or leave it blank for 50% of the budget), then change <b>Status</b> to <b>Closed-Won</b>. The rest runs by itself.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "7e5daa4a-6f56-40c8-8f2e-f5ab704f53e2",
+      "name": "Email Me About New Request",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        80
+      ],
+      "webhookId": "e32101ae-c103-4a37-bd3a-e411b6e368be",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Describe this prospective client's project for a meeting invite email.\nClient company: {{ $(\"Client Onboarding Form\").first().json[\"Company Name\"] }}\nContact person: {{ $(\"Client Onboarding Form\").first().json[\"Your Name\"] }}\nWhat they need: {{ $(\"Client Onboarding Form\").first().json[\"What do you need done?\"] }}\nNotes: {{ $(\"Client Onboarding Form\").first().json[\"Anything else we should know?\"] ?? \"\" }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You help Ahmed from PARADOX write a meeting invite. You do not write the whole email, only one short part. goal: a short phrase (under 8 words) naming the client's project in plain words, for example 'your new booking website', taken only from what the client asked for. Never invent details. Do not use quotation marks or HTML."
+        }
+      },
+      "id": "3b44f9b6-43e2-4d4f-a44d-a26c58349c71",
+      "name": "Write Meeting Invite",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1120,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-5",
+          "cachedResultName": "Claude Sonnet 5"
+        },
+        "options": {}
+      },
+      "id": "6ffb8000-7d12-4204-ba80-711dd8a2144b",
+      "name": "Claude (Meeting invite)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        1136,
+        208
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"goal\":\"your new booking website\"}"
+      },
+      "id": "f8381a71-cd19-4335-9fc2-b54e4331f101",
+      "name": "Email Format (Meeting invite)",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "ahmedhashir0022@gmail.com",
+        "subject": "=Approve? Meeting invite for {{ $(\"Client Onboarding Form\").first().json[\"Company Name\"] }}",
+        "message": "=<p>Nothing has been sent yet. Read the meeting invite below, then approve or reject.</p><p><b>To:</b> {{ $('Client Onboarding Form').first().json['Your Name'] }} &lt;{{ $('Client Onboarding Form').first().json['Email'] }}&gt;<br><b>Subject:</b> Let's schedule our discovery meeting</p><hr><div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222;'><p style='margin:0 0 14px 0;'>Hi {{ String($('Client Onboarding Form').first().json['Your Name'] || 'there').trim().split(' ')[0] }},</p><p style='margin:0 0 14px 0;'>Thank you for connecting with us! We are excited about the opportunity to partner with you on {{ $('Write Meeting Invite').first().json.output.goal || 'your project' }}.</p><p style='margin:0 0 14px 0;'>To ensure we align on your goals, requirements, and project scope, I would like to schedule our initial discovery meeting.</p><p style='margin:0 0 6px 0;'><b>Agenda:</b></p><ol style='margin:0 0 14px 0;padding-left:20px;'><li style='margin:0 0 6px 0;'>Overview of your project goals &amp; target outcomes</li><li style='margin:0 0 6px 0;'>Scope of work and technical/business requirements</li><li style='margin:0 0 6px 0;'>Budget, timelines, and payment structures</li><li style='margin:0 0 6px 0;'>Next steps &amp; Q&amp;A</li></ol><p style='margin:0 0 14px 0;'>Please reply with a few days and times that suit you, and I will confirm the meeting.</p><p style='margin:0 0 14px 0;'>Looking forward to our conversation!</p><p style='margin:0;'>Best regards,<br>Ahmed<br>PARADOX</p></div>",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Approve & send",
+            "disapproveLabel": "Reject"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 24
+            }
+          },
+          "appendAttribution": false
+        }
+      },
+      "id": "b96e3417-49db-434d-877a-b0bbdc93945f",
+      "name": "Approve Meeting Invite",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        80
+      ],
+      "webhookId": "08a602c2-a82f-4d6b-8d28-9004875cd8f3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.data?.approved === true }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0db41286-4b01-4ee4-82a1-bfd9512695db",
+      "name": "Meeting Invite Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Client Onboarding Form\").first().json[\"Email\"] }}",
+        "subject": "Let's schedule our discovery meeting",
+        "message": "=<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222;'><p style='margin:0 0 14px 0;'>Hi {{ String($('Client Onboarding Form').first().json['Your Name'] || 'there').trim().split(' ')[0] }},</p><p style='margin:0 0 14px 0;'>Thank you for connecting with us! We are excited about the opportunity to partner with you on {{ $('Write Meeting Invite').first().json.output.goal || 'your project' }}.</p><p style='margin:0 0 14px 0;'>To ensure we align on your goals, requirements, and project scope, I would like to schedule our initial discovery meeting.</p><p style='margin:0 0 6px 0;'><b>Agenda:</b></p><ol style='margin:0 0 14px 0;padding-left:20px;'><li style='margin:0 0 6px 0;'>Overview of your project goals &amp; target outcomes</li><li style='margin:0 0 6px 0;'>Scope of work and technical/business requirements</li><li style='margin:0 0 6px 0;'>Budget, timelines, and payment structures</li><li style='margin:0 0 6px 0;'>Next steps &amp; Q&amp;A</li></ol><p style='margin:0 0 14px 0;'>Please reply with a few days and times that suit you, and I will confirm the meeting.</p><p style='margin:0 0 14px 0;'>Looking forward to our conversation!</p><p style='margin:0;'>Best regards,<br>Ahmed<br>PARADOX</p></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "e1d96cd9-1fc8-4e20-be8e-6a52bb4c9acd",
+      "name": "Send Meeting Invite to Client",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        80
+      ],
+      "webhookId": "9c246fa0-c3ed-43ff-94b0-b979b0f6c177",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10yct2cMGpDgL2dGb5zkqHIFghlpHuKNSaG6bQsvheVU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Clients"
+        },
+        "event": "rowUpdate",
+        "options": {
+          "columnsToWatch": [
+            "Status"
+          ]
+        }
+      },
+      "id": "2e3e05f1-6e99-473b-aa40-448616b42e69",
+      "name": "Status Changed in Sheet",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        512
+      ],
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "roNQrB7u8UYObqac",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.Status }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "Closed-Won"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "35069b0f-c5ee-45c5-ba05-01a4dff1d89c",
+      "name": "Is it Closed-Won?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "id",
+              "value": "={{ $json[\"Deal ID\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "name",
+              "value": "={{ $json[\"Legal Name\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "contact",
+              "value": "={{ $json[\"Contact Name\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "email",
+              "value": "={{ $json[\"Contact Email\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "deposit",
+              "value": "={{ $json[\"Deposit Amount\"] ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "scope",
+              "value": "={{ $json[\"Scope Items\"] ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a7",
+              "name": "notes",
+              "value": "={{ $json[\"Notes\"] ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a8",
+              "name": "budget",
+              "value": "={{ $json[\"Budget\"] ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a9",
+              "name": "dueDate",
+              "value": "={{ $json[\"Due Date\"] ?? \"\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "15b8c713-1226-4aea-aff8-6571e11ee194",
+      "name": "Tidy Deal Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const t = $('Tidy Deal Info').first().json;\nconst cur = 'USD';\nconst num = (v) => Number(String(v ?? '').replace(/[^0-9.\\-]/g, '')) || 0;\nconst money = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(n);\nconst fmt = (d) => { const x = DateTime.fromISO(String(d)); return x.isValid ? x.toFormat('d LLLL yyyy') : String(d ?? ''); };\nconst budget = num(t.budget);\nconst deposit = num(t.deposit) || Math.round(budget * 50) / 100;\nconst balance = Math.round((budget - deposit) * 100) / 100;\nconst pct = budget ? Math.round((deposit / budget) * 100) : 50;\nconst invoiceNumber = 'INV-' + String(t.id).replace(/^ONB-/, '');\nconst safe = String(t.name).replace(/[^A-Za-z0-9 ]/g, '').trim().replace(/ +/g, '-');\nconst today = $today.toISODate();\nreturn [{ json: {\n  deal_id: t.id,\n  client_legal_name: t.name,\n  contact_name: t.contact,\n  contact_email: t.email,\n  scope_items: t.scope,\n  project_due_date: fmt(t.dueDate),\n  total_amount: money(budget),\n  deposit_amount: money(deposit),\n  balance_due: money(balance),\n  deposit_percent: pct + '%',\n  invoice_number: invoiceNumber,\n  invoice_date: fmt(today),\n  agreement_date: fmt(today),\n  due_date: fmt(DateTime.fromISO(today).plus({ days: 7 }).toISODate()),\n  agreement_file: t.id + '_Agreement_' + safe,\n  invoice_file: t.id + '_' + invoiceNumber + '_' + safe\n} }];"
+      },
+      "id": "28ef7872-fc55-4301-b0c4-3f5d2f580a38",
+      "name": "Build Document Values",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1D2Zm3gGboIu3y9id-42P8-2zILcgmQrwApO7ZSDyMRs"
+        },
+        "name": "={{ $(\"Build Document Values\").first().json.agreement_file }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XLkzZYW7XevWbV2iKaQGUUmxmC6whkD7"
+        },
+        "options": {}
+      },
+      "id": "0b7693c7-07e4-460b-9290-a4a41db5dff6",
+      "name": "Copy Agreement Template",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        608
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "O85Qa6XBifHN795h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $(\"Copy Agreement Template\").first().json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "[[deal_id]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.deal_id }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[agreement_date]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.agreement_date }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[client_legal_name]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.client_legal_name }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[contact_name]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.contact_name }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[contact_email]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.contact_email }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[scope_items]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.scope_items }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[project_due_date]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.project_due_date }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[total_amount]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.total_amount }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[deposit_percent]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.deposit_percent }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[deposit_amount]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.deposit_amount }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[balance_due]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.balance_due }}",
+              "matchCase": true
+            }
+          ]
+        }
+      },
+      "id": "bc93a39e-0f91-40ad-bc28-211fe0f4722f",
+      "name": "Fill Agreement",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        608
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "tgMpLu8AC5GzI6FK",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $(\"Copy Agreement Template\").first().json.id }}"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          },
+          "fileName": "={{ $(\"Build Document Values\").first().json.agreement_file }}.pdf"
+        }
+      },
+      "id": "65a7de54-453c-411c-a2c7-6d8e43f8805a",
+      "name": "Export Agreement PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        608
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "O85Qa6XBifHN795h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Tidy Deal Info\").first().json.email }}",
+        "subject": "=Your agreement to sign: {{ $('Build Document Values').first().json.deal_id }}",
+        "message": "=<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222;'><p style='margin:0 0 14px 0;'>Hi {{ String($('Tidy Deal Info').first().json.contact || 'there').trim().split(' ')[0] }},</p><p style='margin:0 0 14px 0;'>It was a pleasure speaking with you! We're excited to partner with you on your web app project.</p><p style='margin:0 0 14px 0;'>Please review and sign the attached agreement.</p><ul style='margin:0 0 14px 0;padding-left:20px;'><li style='margin:0 0 6px 0;'><b>Summary of terms:</b> Delivery by {{ $('Build Document Values').first().json.project_due_date }}. Total project fee {{ $('Build Document Values').first().json.total_amount }}, with a {{ $('Build Document Values').first().json.deposit_percent }} deposit ({{ $('Build Document Values').first().json.deposit_amount }}) due before work starts.</li></ul><p style='margin:0 0 14px 0;'>Once signed, we will move forward with payment processing and project setup.</p><p style='margin:0 0 14px 0;'>If you have any questions or need revisions before signing, please feel free to reply directly to this email.</p><p style='margin:0;'>Best regards,<br>Ahmed<br>PARADOX</p></div>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "c86093f3-f354-469f-a2c1-8507841fee98",
+      "name": "Email Agreement to Client",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2464,
+        416
+      ],
+      "webhookId": "832ebe85-77b2-4727-9201-668f26077026",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "4eed62e6-9fdf-443a-bcc7-5418ce1538d2",
+      "name": "Wait for Both Documents",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1568,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1rBfwVat9iItogeQsxxyEJZcD0hjU8Ii-1DSBYobNcu0"
+        },
+        "name": "={{ $(\"Build Document Values\").first().json.invoice_file }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XLkzZYW7XevWbV2iKaQGUUmxmC6whkD7"
+        },
+        "options": {}
+      },
+      "id": "d2de2d44-132c-4628-8456-135c81f7d780",
+      "name": "Copy Invoice Template",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        416
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "O85Qa6XBifHN795h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $(\"Copy Invoice Template\").first().json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "[[deal_id]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.deal_id }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[invoice_number]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.invoice_number }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[invoice_date]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.invoice_date }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[due_date]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.due_date }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[client_legal_name]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.client_legal_name }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[contact_name]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.contact_name }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[contact_email]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.contact_email }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[scope_items]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.scope_items }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[total_amount]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.total_amount }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[deposit_percent]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.deposit_percent }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[deposit_amount]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.deposit_amount }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "[[balance_due]]",
+              "replaceText": "={{ $(\"Build Document Values\").first().json.balance_due }}",
+              "matchCase": true
+            }
+          ]
+        }
+      },
+      "id": "0b674566-87b0-449e-ad00-16766d6d0e7e",
+      "name": "Fill Invoice",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        416
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "tgMpLu8AC5GzI6FK",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $(\"Copy Invoice Template\").first().json.id }}"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          },
+          "fileName": "={{ $(\"Build Document Values\").first().json.invoice_file }}.pdf"
+        }
+      },
+      "id": "c29c5177-17a7-4518-a19c-ef94d90fc15d",
+      "name": "Export Invoice PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        416
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "O85Qa6XBifHN795h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Tidy Deal Info\").first().json.email }}",
+        "subject": "=Your invoice {{ $('Build Document Values').first().json.invoice_number }}",
+        "message": "=<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222;'><p style='margin:0 0 14px 0;'>Hi {{ String($('Tidy Deal Info').first().json.contact || 'there').trim().split(' ')[0] }},</p><p style='margin:0 0 14px 0;'>Thank you for your business! Your invoice for your web app project is attached to this email.</p><ul style='margin:0 0 14px 0;padding-left:20px;'><li style='margin:0 0 6px 0;'><b>Invoice number:</b> {{ $('Build Document Values').first().json.invoice_number }}</li><li style='margin:0 0 6px 0;'><b>Amount due:</b> {{ $('Build Document Values').first().json.deposit_amount }}</li><li style='margin:0 0 6px 0;'><b>Due date:</b> {{ $('Build Document Values').first().json.due_date }}</li></ul><p style='margin:0 0 14px 0;'>If you have any questions or need adjustments, please let me know.</p><p style='margin:0;'>Best regards,<br>Ahmed<br>PARADOX</p></div>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "e7d87bec-4d76-4700-baff-9b5c5e6b71d5",
+      "name": "Email Invoice to Client",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2912,
+        416
+      ],
+      "webhookId": "c364e281-6bdd-468c-81f7-3f0853fe69a0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10yct2cMGpDgL2dGb5zkqHIFghlpHuKNSaG6bQsvheVU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Clients"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Deal ID": "={{ $(\"Tidy Deal Info\").first().json.id }}",
+            "Status": "Awaiting Payment",
+            "Contract Link": "=https://docs.google.com/document/d/{{ $(\"Copy Agreement Template\").first().json.id }}/edit",
+            "Invoice Link": "=https://docs.google.com/document/d/{{ $(\"Copy Invoice Template\").first().json.id }}/edit"
+          },
+          "matchingColumns": [
+            "Deal ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "d75e778b-a85a-4de2-8f37-4db284093b60",
+      "name": "Status: Awaiting Payment",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3136,
+        416
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FjX3nVqL7WD9w0Md",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10yct2cMGpDgL2dGb5zkqHIFghlpHuKNSaG6bQsvheVU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Clients"
+        },
+        "event": "rowUpdate",
+        "options": {
+          "columnsToWatch": [
+            "Paid"
+          ]
+        }
+      },
+      "id": "94a88538-850e-4a5c-82a4-d32a8dd1a2c3",
+      "name": "Paid Changed in Sheet",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        928
+      ],
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "roNQrB7u8UYObqac",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ String($json.Paid).toUpperCase() === \"TRUE\" }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": ""
+            },
+            {
+              "leftValue": "={{ $json.Status }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "Awaiting Payment"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "67f4096a-706c-40bc-932e-c0d3918322b1",
+      "name": "Paid and Waiting for Payment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1",
+              "name": "id",
+              "value": "={{ $json[\"Deal ID\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "b2",
+              "name": "name",
+              "value": "={{ $json[\"Legal Name\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "b3",
+              "name": "contact",
+              "value": "={{ $json[\"Contact Name\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "b4",
+              "name": "email",
+              "value": "={{ $json[\"Contact Email\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "b5",
+              "name": "scope",
+              "value": "={{ $json[\"Scope Items\"] ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "b6",
+              "name": "notes",
+              "value": "={{ $json[\"Notes\"] ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "b7",
+              "name": "dueDate",
+              "value": "={{ $json[\"Due Date\"] ?? \"\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "71febc87-76b0-49a9-a035-a2f00fe82ca8",
+      "name": "Tidy Paid Deal",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Describe this new client's project for a welcome email.\nClient company: {{ $json.name }}\nContact person: {{ $json.contact }}\nWhat we are doing for them: {{ $json.scope }}\nNotes about this client: {{ $json.notes }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You help Ahmed from PARADOX write a welcome email. You do not write the whole email, only two short parts. goal: a short phrase (under 8 words) naming the client's project in plain words, for example 'your new booking website', taken only from the scope you are given. note: one short, friendly sentence that uses something from the client's notes, or an empty string if the notes give nothing useful. Never invent dates, prices, promises or links. Do not use quotation marks or HTML."
+        }
+      },
+      "id": "ae4ad7dd-b6de-4a92-8c80-4820409d751e",
+      "name": "Write Welcome Email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        672,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-5",
+          "cachedResultName": "Claude Sonnet 5"
+        },
+        "options": {}
+      },
+      "id": "6abb7ae3-619c-4db2-9bdb-8c2e836998b1",
+      "name": "Claude (Welcome email)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        688,
+        1168
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"goal\":\"your new booking website\",\"note\":\"Happy to keep updates short, as you prefer.\"}"
+      },
+      "id": "a85a7665-3b9b-4c30-a0e7-4f3fca338fd5",
+      "name": "Email Format (Welcome)",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        1168
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Tidy Paid Deal\").first().json.email }}",
+        "subject": "=Welcome aboard, {{ String($('Tidy Paid Deal').first().json.contact || 'there').trim().split(' ')[0] }}!",
+        "message": "=<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222;'><p style='margin:0 0 14px 0;'>Hi {{ String($('Tidy Paid Deal').first().json.contact || 'there').trim().split(' ')[0] }},</p><p style='margin:0 0 14px 0;'>Welcome aboard! We are thrilled to partner with you on {{ $('Write Welcome Email').first().json.output.goal || 'your project' }}.</p>{{ $('Write Welcome Email').first().json.output.note ? \"<p style='margin:0 0 14px 0;'>\" + $('Write Welcome Email').first().json.output.note + \"</p>\" : '' }}<p style='margin:0 0 6px 0;'><b>Next steps:</b></p><ol style='margin:0 0 14px 0;padding-left:20px;'><li style='margin:0 0 6px 0;'><b>Kickoff meeting:</b> I will be in touch shortly to agree a date and time.</li>{{ DateTime.fromISO(String($('Tidy Paid Deal').first().json.dueDate || '')).isValid ? \"<li style='margin:0 0 6px 0;'><b>Project delivery:</b> we are aiming for \" + DateTime.fromISO(String($('Tidy Paid Deal').first().json.dueDate)).toFormat('d LLLL yyyy') + \".</li>\" : '' }}</ol><p style='margin:0 0 14px 0;'>If you have any questions, feel free to reply directly to this email. We're excited to work with you!</p><p style='margin:0;'>Best regards,<br>Ahmed<br>PARADOX</p></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "02203d6a-60bd-408e-abd9-a15b75130048",
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        928
+      ],
+      "webhookId": "e89fe171-3b3a-4951-9c5b-4adde3951d9d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10yct2cMGpDgL2dGb5zkqHIFghlpHuKNSaG6bQsvheVU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Clients"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Deal ID": "={{ $(\"Tidy Paid Deal\").first().json.id }}",
+            "Status": "Active Client"
+          },
+          "matchingColumns": [
+            "Deal ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "7db1674d-4be5-4119-964a-ee0310dcaf21",
+      "name": "Status: Active Client",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        928
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FjX3nVqL7WD9w0Md",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "ahmedhashir0022@gmail.com",
+        "subject": "=Approve? Agreement and invoice for {{ $('Tidy Deal Info').first().json.name }}",
+        "message": "=<p>Nothing has been sent to the client yet. Open both documents, check them, then approve or reject.</p><p><b>To:</b> {{ $('Tidy Deal Info').first().json.contact }} &lt;{{ $('Tidy Deal Info').first().json.email }}&gt;<br><b>Total:</b> {{ $('Build Document Values').first().json.total_amount }} · <b>Deposit:</b> {{ $('Build Document Values').first().json.deposit_amount }} · <b>Due:</b> {{ $('Build Document Values').first().json.due_date }}</p><p><a href=\"https://docs.google.com/document/d/{{ $('Copy Agreement Template').first().json.id }}/edit\">Open the agreement</a><br><a href=\"https://docs.google.com/document/d/{{ $('Copy Invoice Template').first().json.id }}/edit\">Open the invoice</a></p><p>If you approve, the client gets two emails, each with its PDF attached.</p>",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Approve & send",
+            "disapproveLabel": "Reject"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 24
+            }
+          },
+          "appendAttribution": false
+        }
+      },
+      "id": "1358ec38-9658-4644-9aa7-41b1fa73a456",
+      "name": "Approve Agreement and Invoice",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        512
+      ],
+      "webhookId": "dd19c8d7-5e40-4e88-9852-e25fb554a2d2",
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da1",
+              "leftValue": "={{ $json.data?.approved === true }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "35fd8c94-3427-43b8-89e0-f36bf78ec9f6",
+      "name": "Documents Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2016,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10yct2cMGpDgL2dGb5zkqHIFghlpHuKNSaG6bQsvheVU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Clients"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Deal ID": "={{ $('Tidy Deal Info').first().json.id }}",
+            "Status": "Needs Fix"
+          },
+          "matchingColumns": [
+            "Deal ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "da003c17-8e9f-479a-a38f-feebb161b839",
+      "name": "Status: Documents Rejected",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2240,
+        608
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FjX3nVqL7WD9w0Md",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const f = $input.first().json;\n// A realistic due date: at least MIN_DAYS from today and at most MAX_DAYS away.\nconst MIN_DAYS = 14;\nconst MAX_DAYS = 365;\nconst today = $today.startOf('day');\nconst earliest = today.plus({ days: MIN_DAYS });\nconst latest = today.plus({ days: MAX_DAYS });\nconst d = DateTime.fromISO(String(f['Due Date'] || ''));\nlet reason = '';\nif (!d.isValid) reason = 'we could not read it';\nelse if (d < today) reason = 'it is in the past';\nelse if (d < earliest) reason = `we need at least ${MIN_DAYS} days to do the work properly`;\nelse if (d > latest) reason = 'it is more than a year away';\nreturn [{ json: { ...f, dateOk: reason === '', dateReason: reason, chosenDate: d.isValid ? d.toFormat('d LLLL yyyy') : String(f['Due Date'] || ''), earliestDate: earliest.toFormat('d LLLL yyyy'), latestDate: latest.toFormat('d LLLL yyyy') } }];"
+      },
+      "id": "55d55a79-15bb-4156-8d06-cd7af996a94e",
+      "name": "Check Due Date",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dd1",
+              "leftValue": "={{ $json.dateOk }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "177cb2b8-85ec-4764-9f33-ccbd453be159",
+      "name": "Due Date Realistic?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json[\"Email\"] }}",
+        "subject": "Please choose a different due date for your project",
+        "message": "=<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222;'><p style='margin:0 0 14px 0;'>Hi {{ String($json['Your Name'] || 'there').trim().split(' ')[0] }},</p><p style='margin:0 0 14px 0;'>Thank you for your interest in working with us! Unfortunately the due date you chose ({{ $json.chosenDate }}) does not work, because {{ $json.dateReason }}.</p><p style='margin:0 0 14px 0;'>Please choose a date between <b>{{ $json.earliestDate }}</b> and <b>{{ $json.latestDate }}</b> and send the form again:</p><p style='margin:0 0 14px 0;'><a href='https://hashir2.app.n8n.cloud/form/client-onboarding'>Open the project request form</a></p><p style='margin:0;'>Best regards,<br>Ahmed<br>PARADOX</p></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "34e07098-71af-4b6a-af27-2bee57299b11",
+      "name": "Ask Client for a Better Date",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -112
+      ],
+      "webhookId": "763ab319-d1a7-4af7-ae14-f108c8fd0f47",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VJGVfcb64bOXOq35",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Copy Agreement Template').first().json.id }}"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          },
+          "fileName": "={{ $('Build Document Values').first().json.agreement_file }}.pdf"
+        }
+      },
+      "id": "c6471bb7-5889-445a-a480-f00ae43a52fb",
+      "name": "Get Agreement PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2240,
+        416
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "O85Qa6XBifHN795h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Copy Invoice Template').first().json.id }}"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          },
+          "fileName": "={{ $('Build Document Values').first().json.invoice_file }}.pdf"
+        }
+      },
+      "id": "515f641d-22f6-4317-8770-6fc6f476cff4",
+      "name": "Get Invoice PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2688,
+        416
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "O85Qa6XBifHN795h",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Save Request to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Email Me About New Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Me About New Request": {
+      "main": [
+        [
+          {
+            "node": "Write Meeting Invite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude (Meeting invite)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write Meeting Invite",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Format (Meeting invite)": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Write Meeting Invite",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve Meeting Invite": {
+      "main": [
+        [
+          {
+            "node": "Meeting Invite Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meeting Invite Approved?": {
+      "main": [
+        [
+          {
+            "node": "Send Meeting Invite to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status Changed in Sheet": {
+      "main": [
+        [
+          {
+            "node": "Is it Closed-Won?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is it Closed-Won?": {
+      "main": [
+        [
+          {
+            "node": "Tidy Deal Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tidy Deal Info": {
+      "main": [
+        [
+          {
+            "node": "Build Document Values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Document Values": {
+      "main": [
+        [
+          {
+            "node": "Copy Agreement Template",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Copy Invoice Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy Agreement Template": {
+      "main": [
+        [
+          {
+            "node": "Fill Agreement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill Agreement": {
+      "main": [
+        [
+          {
+            "node": "Export Agreement PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy Invoice Template": {
+      "main": [
+        [
+          {
+            "node": "Fill Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill Invoice": {
+      "main": [
+        [
+          {
+            "node": "Export Invoice PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paid Changed in Sheet": {
+      "main": [
+        [
+          {
+            "node": "Paid and Waiting for Payment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paid and Waiting for Payment?": {
+      "main": [
+        [
+          {
+            "node": "Tidy Paid Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tidy Paid Deal": {
+      "main": [
+        [
+          {
+            "node": "Write Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude (Welcome email)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write Welcome Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Format (Welcome)": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Write Welcome Email",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Status: Active Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export Agreement PDF": {
+      "main": [
+        [
+          {
+            "node": "Wait for Both Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export Invoice PDF": {
+      "main": [
+        [
+          {
+            "node": "Wait for Both Documents",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Wait for Both Documents": {
+      "main": [
+        [
+          {
+            "node": "Approve Agreement and Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve Agreement and Invoice": {
+      "main": [
+        [
+          {
+            "node": "Documents Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Documents Approved?": {
+      "main": [
+        [
+          {
+            "node": "Get Agreement PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Status: Documents Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Invoice to Client": {
+      "main": [
+        [
+          {
+            "node": "Status: Awaiting Payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Onboarding Form": {
+      "main": [
+        [
+          {
+            "node": "Check Due Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Due Date": {
+      "main": [
+        [
+          {
+            "node": "Due Date Realistic?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Due Date Realistic?": {
+      "main": [
+        [
+          {
+            "node": "Save Request to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask Client for a Better Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Meeting Invite": {
+      "main": [
+        [
+          {
+            "node": "Approve Meeting Invite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Agreement PDF": {
+      "main": [
+        [
+          {
+            "node": "Email Agreement to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Agreement to Client": {
+      "main": [
+        [
+          {
+            "node": "Get Invoice PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Invoice PDF": {
+      "main": [
+        [
+          {
+            "node": "Email Invoice to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "88385d3c-4008-4290-b97d-ee53fc637640",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "95f1ccda68dea33e5612aa32ff05864b0e0bdb2a74595c4563d0283b8c2a5939"
+  },
+  "nodeGroups": [],
+  "id": "V4X6kzmUYIsVgBcI",
+  "tags": []
+}
